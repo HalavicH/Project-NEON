@@ -26,6 +26,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "log.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -45,6 +47,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
+extern TIM_HandleTypeDef htim1;
 
 /* USER CODE END PV */
 
@@ -95,6 +98,10 @@ void NMI_Handler(void)
 void HardFault_Handler(void)
 {
     /* USER CODE BEGIN HardFault_IRQn 0 */
+
+    log_err("We died! :(\n");
+    HAL_GPIO_WritePin(Cycle_LED_GPIO_Port, Cycle_LED_Pin, 1);
+    HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_1);
 
     /* USER CODE END HardFault_IRQn 0 */
     while (1) {
