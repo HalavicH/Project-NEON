@@ -38,6 +38,7 @@ BUILD_DIR = build
 NEON_SRC = \
 Neon/neon.c \
 Neon/log.c \
+Neon/ws2812b.c \
 
 C_SOURCES =  \
 $(NEON_SRC) \
