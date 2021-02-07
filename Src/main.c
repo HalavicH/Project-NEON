@@ -28,6 +28,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "neon.h"
 
 /* USER CODE END Includes */
 
@@ -98,6 +99,7 @@ int main(void)
     MX_USART3_UART_Init();
 
     /* USER CODE BEGIN 2 */
+    neon_main();
 
     /* USER CODE END 2 */
 
