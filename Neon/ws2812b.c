@@ -11,9 +11,9 @@
 #include "ws2812b.h"
 
 /*--------------------------------------------------------------------------- */
-#define DELAY_LEN   100
-#define HIGH        65
-#define LOW         26
+#define DELAY_LEN   50
+#define HIGH        72 /* eth 58/ KS 72 */
+#define LOW         24 /* eth 28/ KS 20 */
 
 #define CHECK_BIT(reg, bit)  ((reg & (1 << bit)) != 0)
 
