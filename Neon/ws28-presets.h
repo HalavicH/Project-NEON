@@ -17,9 +17,11 @@
 
 extern uint8_t ws28_comet_condition;
 extern uint8_t ws28_chess_condition;
+extern uint8_t ws28_static_condition;
 
 void ws28_comet(ws28_data_st_t *ws28_data, uint8_t *RGB);
 void ws28_chess(ws28_data_st_t *ws28_data, uint8_t *RGB);
+void ws28_static(ws28_data_st_t *ws28_data, uint8_t *RGB);
 
 #endif /* INC_WS28_PRESETS_H_ */
 

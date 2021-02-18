@@ -22,6 +22,7 @@
 
 uint8_t ws28_comet_condition = 1;
 uint8_t ws28_chess_condition = 1;
+uint8_t ws28_static_condition = 1;
 
 void ws28_comet(ws28_data_st_t *ws28_data, uint8_t *RGB)
 {
@@ -91,5 +92,27 @@ void ws28_chess(ws28_data_st_t *ws28_data, uint8_t *RGB)
     } while (ws28_chess_condition);
 
     free(pixels);
+}
+
+void ws28_static(ws28_data_st_t *ws28_data, uint8_t *RGB)
+{
+    uint8_t(*pixels)[3];
+    uint8_t i = 0;
+
+    if (NULL == ws28_data || NULL == RGB) {
+        return;
+    }
+
+    do {
+        pixels = calloc(ws28_data->pixel_in_strip * 3, sizeof(uint8_t));
+
+        for(i = 0; i < ws28_data->pixel_in_strip; i++) {
+            SET_PIXEL(pixels[i], RGB[0], RGB[1], RGB[2]);
+        }
+
+        ws28_write_pixels(ws28_data, pixels, ws28_data->pixel_in_strip);
+
+        HAL_Delay(FRAME_DELAY * 10);
+    } while (ws28_static_condition);
 }
 
