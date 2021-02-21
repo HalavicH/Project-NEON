@@ -9,6 +9,8 @@
 #include <stdlib.h>
 
 #include "log.h"
+#include "neon.h"
+#include "state-machine.h"
 #include "ws2812b.h"
 
 /*--------------------------------------------------------------------------- */
@@ -21,9 +23,56 @@
 #define WS_BIT_POS(pixel_pos, subpixel_pos, bit)                                \
     (GET_BIT_POS(pixel_pos, subpixel_pos, bit) + DELAY_LEN)
 
+/* Reader-related data */
+#define IS_NEW_PIXEL(n)                 (!((n) % BPP))
+#define IS_NEW_SUBPIXEL(n)              (!((n) % BPSP))
+#define PIXEL_INDEX(n)                  ((n) / BPP)
+
 /*--------------------------------------------------------------------------- */
 
 static ws28_data_st_t *active_ws28_channel = NULL;
+
+/* Active reader data (for callback) */
+static TIM_TypeDef *active_eof_tim = NULL;
+static GPIO_TypeDef *active_gpio_port = NULL;
+static EXTI_TypeDef *active_exti = NULL;
+static uint32_t active_gpio_pin;
+static bool *active_frame_buf = NULL;
+static uint32_t active_frame_buf_len;
+
+static uint32_t input_bits_cnt;
+
+static
+void set_reader_callback_data(ws28_reader_data_st_t *ws28_reader_data)
+{
+    active_eof_tim = ws28_reader_data->cmsis_eof_timer_ptr;
+    active_gpio_port = ws28_reader_data->cmsis_input_gpio_port;
+    active_exti = ws28_reader_data->cmsis_exti_irq_ptr;
+    active_gpio_pin = ws28_reader_data->gpio_pin_mask;
+    active_frame_buf = ws28_reader_data->frame_buf;
+    active_frame_buf_len = ws28_reader_data->frame_buf_len;
+}
+
+void ws28_reader_init(ws28_reader_data_st_t *ws28_reader_data)
+{
+    if (NULL == ws28_reader_data) {
+        log_err("Reader data ptr is null\n");
+
+        Error_Handler();
+    } else if (NULL == ws28_reader_data->cmsis_eof_timer_ptr ||
+               NULL == ws28_reader_data->cmsis_exti_irq_ptr ||
+               NULL == ws28_reader_data->cmsis_input_gpio_port ||
+               NULL == ws28_reader_data->frame_buf) {
+        log_err("Reader data content ptr is null\n");
+
+        Error_Handler();
+    }
+
+    set_reader_callback_data(ws28_reader_data);
+
+    /* Init EOF Timer. Enable global interrupt */
+    active_eof_tim->DIER |= TIM_DIER_UIE;
+}
 
 void ws28_init(ws28_data_st_t *ws28_data)
 {
@@ -55,10 +104,6 @@ void ws28_deinit(ws28_data_st_t *ws28_data)
     free(ws28_data->pixel_buf);
 }
 
-#define IS_NEW_PIXEL(n)                 (!((n) % BPP))
-#define IS_NEW_SUBPIXEL(n)              (!((n) % BPSP))
-#define PIXEL_INDEX(n)                  ((n) / BPP)
-
 void print_buff(bool *frame_buf, int bit_cnt)
 {
     for (int i = 0; i < bit_cnt; i++) {
@@ -74,6 +119,56 @@ void print_buff(bool *frame_buf, int bit_cnt)
     }
 
     system_log(4, "\n\n");
+}
+
+/* Check with inline */
+void ws28_irq_reader_callback(void)
+{
+    /* Reset pending bit 0x4001 0400 + 0x34 */
+    active_exti->PR = active_gpio_pin;
+
+    /* Start counter if it is the first */
+    active_eof_tim->CR1 |= !input_bits_cnt;
+
+    /* Reset counter. 2 because of  */
+    active_eof_tim->CNT = 2;
+
+    active_frame_buf[input_bits_cnt++] =
+        !!(active_gpio_port->IDR & active_gpio_pin); /* mov.w ldr ldr str */
+}
+
+void ws28_eof_timer_callback()
+{
+    int rc = 0;
+
+    /* Stop EOF timer */
+    active_eof_tim->CR1 &= ~TIM_CR1_CEN; /* Stop counter */
+    active_eof_tim->CNT = 0;             /* Reset counter */
+
+    BLINK(EOF_GPIO_Port, EOF_Pin);
+
+    if (0 == input_bits_cnt) {
+        /* Investigate! Situation of misstrigger. */
+        HAL_GPIO_WritePin(Cycle_LED_GPIO_Port, Cycle_LED_Pin, 1);
+
+        return;
+    }
+
+    if (active_frame_buf_len == input_bits_cnt) {
+        log_info("Full frame!\n");
+        print_buff(active_frame_buf, input_bits_cnt);
+
+        rc = set_state(PROCESS_FRAME);
+        if (STATE_SET_SUCCESS == rc) {
+            /* Disable WS28 reader */
+            active_exti->IMR &= ~EXTI_IMR_MR1; /* Mask IRQ */
+        }
+    }
+
+    input_bits_cnt = 0;
+
+    /* For time measurement */
+    BLINK(EOF_GPIO_Port, EOF_Pin);
 }
 
 void ws28_set_pixel(ws28_data_st_t *ws28_data, uint8_t red, uint8_t green,

@@ -9,8 +9,8 @@
 #define INC_WS2812B_H_
 
 #include <stdbool.h>
-
 #include <stdint.h>
+
 #include "stm32f1xx_hal.h"
 #include "tim.h"
 
@@ -41,6 +41,17 @@ typedef struct ws28_data_st {
     pixel_buf_t       *pixel_buf;
 } ws28_data_st_t;
 
+typedef struct ws28_reader_data_st {
+    TIM_TypeDef  *cmsis_eof_timer_ptr;
+    GPIO_TypeDef *cmsis_input_gpio_port;
+    EXTI_TypeDef *cmsis_exti_irq_ptr;
+    uint32_t     gpio_pin_mask;
+
+    bool         *frame_buf;
+    uint32_t     frame_buf_len;
+} ws28_reader_data_st_t;
+
+
 /* API */
 void ws28_init(ws28_data_st_t *ws28_data);
 void ws28_deinit(ws28_data_st_t *ws28_data);
@@ -49,6 +60,11 @@ void ws28_set_pixel(ws28_data_st_t *ws28_data, uint8_t red, uint8_t green,
     uint8_t blue, uint16_t pixel_pos);
 void ws28_write_pixels(ws28_data_st_t *ws28_data, uint8_t rgb_pixel_data[][3],
     uint16_t pixel_cnt);
+
+void ws28_reader_init(ws28_reader_data_st_t *ws28_reader_data);
+
+void ws28_irq_reader_callback();
+void ws28_eof_timer_callback();
 
 #endif /* INC_WS2812B_H_ */
 

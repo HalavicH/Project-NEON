@@ -27,6 +27,8 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "log.h"
+#include "neon.h"
+#include "ws2812b.h"
 
 /* USER CODE END Includes */
 
@@ -219,6 +221,9 @@ void SysTick_Handler(void)
 void EXTI1_IRQHandler(void)
 {
     /* USER CODE BEGIN EXTI1_IRQn 0 */
+    ws28_irq_reader_callback();
+
+    return;
 
     /* USER CODE END EXTI1_IRQn 0 */
     HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_1);
@@ -279,6 +284,7 @@ void DMA1_Channel5_IRQHandler(void)
 void TIM3_IRQHandler(void)
 {
     /* USER CODE BEGIN TIM3_IRQn 0 */
+    ws28_eof_timer_callback();
 
     /* USER CODE END TIM3_IRQn 0 */
     HAL_TIM_IRQHandler(&htim3);
