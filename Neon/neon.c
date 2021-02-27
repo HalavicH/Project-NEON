@@ -18,7 +18,7 @@ void neon_main()
 
     ws28_ch1.timer_ptr = &htim2;
     ws28_ch1.timer_channel = TIM_CHANNEL_1;
-    ws28_ch1.pixel_in_strip = 7;
+    ws28_ch1.pixel_in_strip = ACTIVE_PIXEL_CNT;
 
     ws28_init(&ws28_ch1);
 
