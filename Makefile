@@ -35,7 +35,9 @@ BUILD_DIR = build
 # source
 ######################################
 # C sources
-NEON_SRC = Neon/neon.c
+NEON_SRC = \
+Neon/neon.c \
+Neon/log.c \
 
 C_SOURCES =  \
 $(NEON_SRC) \
@@ -111,6 +113,9 @@ C_DEFS =  \
 -DUSE_HAL_DRIVER \
 -DSTM32F103xB
 
+# Add loglevel
+C_DEFS+= \
+-DLOG_LEVEL=4
 
 # AS includes
 AS_INCLUDES = 
