@@ -5,6 +5,7 @@
  *      Author: halavich
  */
 
+#include <stdbool.h>
 #include <stdlib.h>
 
 #include "log.h"
@@ -52,6 +53,27 @@ void ws28_init(ws28_data_st_t *ws28_data)
 void ws28_deinit(ws28_data_st_t *ws28_data)
 {
     free(ws28_data->pixel_buf);
+}
+
+#define IS_NEW_PIXEL(n)                 (!((n) % BPP))
+#define IS_NEW_SUBPIXEL(n)              (!((n) % BPSP))
+#define PIXEL_INDEX(n)                  ((n) / BPP)
+
+void print_buff(bool *frame_buf, int bit_cnt)
+{
+    for (int i = 0; i < bit_cnt; i++) {
+        if (IS_NEW_SUBPIXEL(i)) {
+            if (IS_NEW_PIXEL(i)) {
+                system_log(4, "\nPixel [%d]: ", PIXEL_INDEX(i));
+            } else {
+                system_log(4, " ");
+            }
+        }
+
+        system_log(4, "%d", frame_buf[i]);
+    }
+
+    system_log(4, "\n\n");
 }
 
 void ws28_set_pixel(ws28_data_st_t *ws28_data, uint8_t red, uint8_t green,

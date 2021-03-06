@@ -8,6 +8,8 @@
 #ifndef INC_WS2812B_H_
 #define INC_WS2812B_H_
 
+#include <stdbool.h>
+
 #include <stdint.h>
 #include "stm32f1xx_hal.h"
 #include "tim.h"
