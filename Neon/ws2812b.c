@@ -125,5 +125,8 @@ void ws28_write_pixels(ws28_data_st_t *ws28_data, uint8_t rgb_pixel_data[][3],
                           ws28_data->timer_channel,
                           (uint32_t *)ws28_data->pixel_buf,
                           ws28_data->pixel_buf_len);
+
+    /* Disabling Half interrupt. Must be right after DMA starting func */
+    DMA1_Channel5->CCR &= ~DMA_CCR_HTIE; /* HT interrupt disabled */
 }
 
