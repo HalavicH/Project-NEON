@@ -171,6 +171,27 @@ void ws28_eof_timer_callback()
     BLINK(EOF_GPIO_Port, EOF_Pin);
 }
 
+void ws28_read_frame(ws28_reader_data_st_t *ws28_reader_data,
+    pixel_t *input_pixel_buf, uint32_t input_pixel_cnt)
+{
+    set_state(READ_FRAME);
+
+    set_reader_callback_data(ws28_reader_data);
+
+    /* Start read */
+    active_exti->IMR |= EXTI_IMR_MR1; /* Enable IRQ */
+
+    /* Wait till read finishes */
+    while (STATE_NOT_MATCH == check_state(PROCESS_FRAME)) {
+    }
+
+    log_info("Hey dude, I'm done with reading!\n");
+
+    /* TODO: check args */
+
+    /* TODO: Parse here */
+}
+
 void ws28_set_pixel(ws28_data_st_t *ws28_data, uint8_t red, uint8_t green,
     uint8_t blue, uint16_t pixel_pos)
 {

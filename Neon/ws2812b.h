@@ -30,7 +30,8 @@
     (pixel_pos * BPP) + i + (subpixel_pos * BPSP)
 
 /* TODO: Hack this somehow */
-typedef uint32_t pixel_buf_t;
+typedef uint32_t pixel_buf_t; /* 16 def */
+typedef uint8_t pixel_t[3];
 
 typedef struct ws28_data_st {
     TIM_HandleTypeDef *timer_ptr;
@@ -65,6 +66,9 @@ void ws28_reader_init(ws28_reader_data_st_t *ws28_reader_data);
 
 void ws28_irq_reader_callback();
 void ws28_eof_timer_callback();
+
+void ws28_read_frame(ws28_reader_data_st_t *ws28_reader_data,
+    pixel_t *input_pixel_buf, uint32_t input_pixel_cnt);
 
 #endif /* INC_WS2812B_H_ */
 
