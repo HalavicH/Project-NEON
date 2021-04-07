@@ -16,7 +16,7 @@
 /*--------------------------------------------------------------------------- */
 #define DELAY_LEN   50
 #define HIGH        72 /* eth 58/ KS 72 */
-#define LOW         24 /* eth 28/ KS 20 */
+#define LOW         20 /* eth 28/ KS 20 */
 
 #define CHECK_BIT(reg, bit)  ((reg & (1 << bit)) != 0)
 
@@ -90,6 +90,7 @@ void ws28_init(ws28_data_st_t *ws28_data)
         return;
     }
 
+    ws28_data->finished_writing = true;
     ws28_data->pixel_buf_len = (DELAY_LEN + ws28_data->pixel_in_strip * BPP);
 
     ws28_data->pixel_buf = calloc(ws28_data->pixel_buf_len,
@@ -150,8 +151,6 @@ void ws28_eof_timer_callback()
     /* Stop EOF timer */
     active_eof_tim->CR1 &= ~TIM_CR1_CEN; /* Stop counter */
     active_eof_tim->CNT = 0;             /* Reset counter */
-
-    BLINK(EOF_GPIO_Port, EOF_Pin);
 
     if (0 == input_bits_cnt) {
         /* Investigate! Situation of misstrigger. */
@@ -268,6 +267,7 @@ void HAL_TIM_PWM_PulseFinishedHalfCpltCallback(TIM_HandleTypeDef *htim)
 void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
 {
     if (htim == active_ws28_channel->timer_ptr) {
+        active_ws28_channel->finished_writing = true;
         HAL_TIM_PWM_Stop_DMA(active_ws28_channel->timer_ptr,
                              active_ws28_channel->timer_channel);
     }
@@ -277,6 +277,13 @@ void ws28_write_pixels(ws28_data_st_t *ws28_data, uint8_t rgb_pixel_data[][3],
     uint16_t pixel_cnt)
 {
     int i = 0;
+
+    /* Wait till dma finishes */
+    while (true != ws28_data->finished_writing) {
+        log_info("Not finished yet\n");
+    }
+
+    ws28_data->finished_writing = false;
 
     if (rgb_pixel_data == NULL ||
         NULL == ws28_data ||

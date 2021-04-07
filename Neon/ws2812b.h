@@ -40,6 +40,8 @@ typedef struct ws28_data_st {
 
     uint32_t          pixel_buf_len;
     pixel_buf_t       *pixel_buf;
+
+    volatile bool     finished_writing;
 } ws28_data_st_t;
 
 typedef struct ws28_reader_data_st {
