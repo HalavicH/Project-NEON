@@ -8,6 +8,7 @@
 #include "neon.h"
 
 #include "log.h"
+#include "rgb-interpolator.h"
 #include "state-machine.h"
 #include "ws28-presets.h"
 #include "ws2812b.h"
@@ -27,6 +28,7 @@ void neon_main()
 
     HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1); /* Start alive LED */
 
+    /* Preset channel */
     ws28_ch1.timer_ptr = &htim2;
     ws28_ch1.timer_channel = TIM_CHANNEL_1;
     ws28_ch1.pixel_in_strip = output_pixel_cnt;
@@ -56,6 +58,8 @@ void neon_main()
         return;
     }
 
+    log_dbg("Allocated input_pixel_buf of %d elements\n", input_pixel_cnt);
+
     output_pixel_buf = calloc(output_pixel_cnt, sizeof(pixel_t));
     if (NULL == output_pixel_buf) {
         log_err("Out of memory\n");
@@ -63,9 +67,27 @@ void neon_main()
         return;
     }
 
+    log_dbg("Allocated output_pixel_buf of %d elements\n", output_pixel_cnt);
+
     /* Main loop */
     while (1) {
+        log_dbg("Going to read the frame\n");
+
         ws28_read_frame(&ws28_reader, input_pixel_buf, input_pixel_cnt);
+
+        /* TODO: Interpolate here */
+        log_dbg("Interpolating %d pixels to %d\n", input_pixel_cnt,
+                output_pixel_cnt);
+
+        interpolate_rgb(input_pixel_buf, input_pixel_cnt,
+                        output_pixel_buf, output_pixel_cnt);
+
+        for (int i = 0; i < output_pixel_cnt; i++) {
+            log_dbg("Interpolated RGB[%d]:[%02X %02X %02X]\n", i,
+                    output_pixel_buf[i][RGB_RED],
+                    output_pixel_buf[i][RGB_GREEN],
+                    output_pixel_buf[i][RGB_BLUE]);
+        }
     }
 }
 

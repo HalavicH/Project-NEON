@@ -2,8 +2,9 @@
 #define NEON_H
 
 /* config */
-#define INPUT_PIXEL_CNT                 7
-#define OUTPUT_PIXEL_CNT                7
+#define MULTIPLIER                      4.875
+#define INPUT_PIXEL_CNT                 32
+#define OUTPUT_PIXEL_CNT                (int)(INPUT_PIXEL_CNT * MULTIPLIER)
 
 #define WS28_FRAME_SIZE                 INPUT_PIXEL_CNT * 24
 
