@@ -88,6 +88,12 @@ void neon_main()
                     output_pixel_buf[i][RGB_GREEN],
                     output_pixel_buf[i][RGB_BLUE]);
         }
+
+        set_state(WRITE_FRAME);
+
+        /* Write here */
+        log_info("Write interpolated pixels\n");
+        ws28_write_pixels(&ws28_ch1, output_pixel_buf, output_pixel_cnt);
     }
 }
 

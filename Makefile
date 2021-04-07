@@ -119,7 +119,7 @@ C_DEFS =  \
 
 # Add loglevel
 C_DEFS+= \
--DLOG_LEVEL=4
+-DLOG_LEVEL=1
 
 # AS includes
 AS_INCLUDES = 
