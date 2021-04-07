@@ -2,8 +2,10 @@
 #define NEON_H
 
 /* config */
-#define ACTIVE_PIXEL_CNT                7
-#define WS28_FRAME_SIZE                 ACTIVE_PIXEL_CNT * 24
+#define INPUT_PIXEL_CNT                 7
+#define OUTPUT_PIXEL_CNT                7
+
+#define WS28_FRAME_SIZE                 INPUT_PIXEL_CNT * 24
 
 /* End of config */
 
