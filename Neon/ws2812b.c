@@ -23,10 +23,16 @@
 #define WS_BIT_POS(pixel_pos, subpixel_pos, bit)                                \
     (GET_BIT_POS(pixel_pos, subpixel_pos, bit) + DELAY_LEN)
 
+/*--------------------------------------------------------------------------- */
 /* Reader-related data */
 #define IS_NEW_PIXEL(n)                 (!((n) % BPP))
 #define IS_NEW_SUBPIXEL(n)              (!((n) % BPSP))
 #define PIXEL_INDEX(n)                  ((n) / BPP)
+
+/* Parser */
+#define BUF_TO_BIT(buf, bit)            (buf[7 - bit] << bit)
+#define PIXEL_OFFSET(buf, pixel)        (buf + (pixel * BPP))
+#define SUBP_OFFSET(buf, subpixel)      (buf + (subpixel * BPSP))
 
 /*--------------------------------------------------------------------------- */
 
@@ -171,6 +177,34 @@ void ws28_eof_timer_callback()
     BLINK(EOF_GPIO_Port, EOF_Pin);
 }
 
+static inline
+void parse_pixel(bool *pixel_buf, pixel_t pixel_p)
+{
+    for (int i = 7; i >= 0; i--) {
+        pixel_p[RGB_RED] |= BUF_TO_BIT(SUBP_OFFSET(pixel_buf, WS28_RED), i);
+        pixel_p[RGB_GREEN] |= BUF_TO_BIT(SUBP_OFFSET(pixel_buf, WS28_GREEN), i);
+        pixel_p[RGB_BLUE] |= BUF_TO_BIT(SUBP_OFFSET(pixel_buf, WS28_BLUE), i);
+    }
+}
+
+static
+void parse_frame_buf(bool *frame_buf, pixel_t *pixel_buf, uint32_t pixel_cnt)
+{
+    uint16_t pixel_it = 0;
+
+    if (NULL == frame_buf || NULL == pixel_buf) {
+        log_err("Invalid args\n");
+
+        return;
+    }
+
+    memset(pixel_buf, 0, (pixel_cnt * sizeof(pixel_t)));
+
+    for (pixel_it = 0; pixel_it < pixel_cnt; pixel_it++) {
+        parse_pixel(PIXEL_OFFSET(frame_buf, pixel_it), pixel_buf[pixel_it]);
+    }
+}
+
 void ws28_read_frame(ws28_reader_data_st_t *ws28_reader_data,
     pixel_t *input_pixel_buf, uint32_t input_pixel_cnt)
 {
@@ -189,7 +223,15 @@ void ws28_read_frame(ws28_reader_data_st_t *ws28_reader_data,
 
     /* TODO: check args */
 
-    /* TODO: Parse here */
+    parse_frame_buf(ws28_reader_data->frame_buf, input_pixel_buf,
+                    input_pixel_cnt);
+
+    for (int i = 0; i < input_pixel_cnt; i++) {
+        log_dbg("Parsed RGB[%d]:[%02X %02X %02X]\n", i,
+                input_pixel_buf[i][RGB_RED],
+                input_pixel_buf[i][RGB_GREEN],
+                input_pixel_buf[i][RGB_BLUE]);
+    }
 }
 
 void ws28_set_pixel(ws28_data_st_t *ws28_data, uint8_t red, uint8_t green,
