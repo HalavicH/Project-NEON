@@ -15,6 +15,7 @@
 
 ws28_data_st_t ws28_ch1 = {0};
 ws28_reader_data_st_t ws28_reader = {0};
+bool *frame_buf = NULL;
 
 void neon_main()
 {
@@ -22,7 +23,6 @@ void neon_main()
     uint32_t output_pixel_cnt = OUTPUT_PIXEL_CNT;
     pixel_t *input_pixel_buf = NULL;
     pixel_t *output_pixel_buf = NULL;
-    bool *frame_buf = NULL;
 
     init_uart_logger(&huart3);
 

@@ -46,7 +46,7 @@ static uint32_t active_gpio_pin;
 static bool *active_frame_buf = NULL;
 static uint32_t active_frame_buf_len;
 
-static uint32_t input_bits_cnt;
+uint32_t input_bits_cnt;
 
 static
 void set_reader_callback_data(ws28_reader_data_st_t *ws28_reader_data)
@@ -128,20 +128,25 @@ void print_buff(bool *frame_buf, int bit_cnt)
     system_log(4, "\n\n");
 }
 
+extern bool *frame_buf;
+
 /* Check with inline */
-void ws28_irq_reader_callback(void)
+inline void ws28_irq_reader_callback(void)
 {
-    /* Reset pending bit 0x4001 0400 + 0x34 */
-    active_exti->PR = active_gpio_pin;
-
-    /* Start counter if it is the first */
-    active_eof_tim->CR1 |= !input_bits_cnt;
-
-    /* Reset counter. 2 because of  */
-    active_eof_tim->CNT = 2;
+#if 0 /* Isn't fast enough */
+    active_exti->PR = active_gpio_pin; /* Reset pending bit */
+    active_eof_tim->CR1 |= !input_bits_cnt; /* Start counter */
+    active_eof_tim->CNT = 2; /* Reset counter */
 
     active_frame_buf[input_bits_cnt++] =
         !!(active_gpio_port->IDR & active_gpio_pin); /* mov.w ldr ldr str */
+#endif
+
+    EXTI->PR = GPIO_PIN_1;        /* Reset pending bit 0x4001 0400  + 0x34 */
+    TIM3->CR1 |= !input_bits_cnt; /* Start counter */
+    TIM3->CNT = 2;                /* Reset counter */
+
+    frame_buf[input_bits_cnt++] = !!(GPIOA->IDR & WS28_CH1_Input_Pin); /* mov.w ldr ldr str */
 }
 
 void ws28_eof_timer_callback()
@@ -158,6 +163,8 @@ void ws28_eof_timer_callback()
 
         return;
     }
+
+    printf("Got: %d bits\n", input_bits_cnt);
 
     if (active_frame_buf_len == input_bits_cnt) {
         log_info("Full frame!\n");

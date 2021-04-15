@@ -67,6 +67,7 @@ void MX_GPIO_Init(void)
     /* EXTI interrupt init*/
     HAL_NVIC_SetPriority(EXTI1_IRQn, 0, 0);
     HAL_NVIC_EnableIRQ(EXTI1_IRQn);
+    EXTI->IMR &= ~EXTI_IMR_MR1; /* Mask IRQ */
 }
 
 /* USER CODE BEGIN 2 */
