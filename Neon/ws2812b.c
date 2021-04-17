@@ -113,19 +113,21 @@ void ws28_deinit(ws28_data_st_t *ws28_data)
 
 void print_buff(bool *frame_buf, int bit_cnt)
 {
+    verbose_level_t log_level = LOG_INFO;
+
     for (int i = 0; i < bit_cnt; i++) {
         if (IS_NEW_SUBPIXEL(i)) {
             if (IS_NEW_PIXEL(i)) {
-                system_log(4, "\nPixel [%d]: ", PIXEL_INDEX(i));
+                system_log(log_level, "\nPixel [%2d]: ", PIXEL_INDEX(i));
             } else {
-                system_log(4, " ");
+                system_log(log_level, " ");
             }
         }
 
-        system_log(4, "%d", frame_buf[i]);
+        system_log(log_level, "%d", frame_buf[i]);
     }
 
-    system_log(4, "\n\n");
+    system_log(log_level, "\n\n");
 }
 
 extern bool *frame_buf;
