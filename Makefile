@@ -35,10 +35,10 @@ BUILD_DIR = build
 # source
 ######################################
 # C sources
+NEON_SRC = Neon/neon.c
+
 C_SOURCES =  \
-Src/main.c \
-Src/stm32f1xx_it.c \
-Src/stm32f1xx_hal_msp.c \
+$(NEON_SRC) \
 /home/halavich/STM32Cube/Repository/STM32Cube_FW_F1_V1.8.3/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_gpio_ex.c \
 /home/halavich/STM32Cube/Repository/STM32Cube_FW_F1_V1.8.3/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim.c \
 /home/halavich/STM32Cube/Repository/STM32Cube_FW_F1_V1.8.3/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim_ex.c \
@@ -52,6 +52,9 @@ Src/stm32f1xx_hal_msp.c \
 /home/halavich/STM32Cube/Repository/STM32Cube_FW_F1_V1.8.3/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_flash.c \
 /home/halavich/STM32Cube/Repository/STM32Cube_FW_F1_V1.8.3/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_flash_ex.c \
 /home/halavich/STM32Cube/Repository/STM32Cube_FW_F1_V1.8.3/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_exti.c \
+Src/main.c \
+Src/stm32f1xx_it.c \
+Src/stm32f1xx_hal_msp.c \
 Src/system_stm32f1xx.c \
 Src/gpio.c \
 Src/dma.c \
@@ -115,6 +118,7 @@ AS_INCLUDES =
 # C includes
 C_INCLUDES =  \
 -IInc \
+-INeon \
 -I/home/halavich/STM32Cube/Repository/STM32Cube_FW_F1_V1.8.3/Drivers/STM32F1xx_HAL_Driver/Inc \
 -I/home/halavich/STM32Cube/Repository/STM32Cube_FW_F1_V1.8.3/Drivers/STM32F1xx_HAL_Driver/Inc/Legacy \
 -I/home/halavich/STM32Cube/Repository/STM32Cube_FW_F1_V1.8.3/Drivers/CMSIS/Device/ST/STM32F1xx/Include \
