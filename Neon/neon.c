@@ -23,6 +23,7 @@ void neon_main()
     uint32_t output_pixel_cnt = OUTPUT_PIXEL_CNT;
     pixel_t *input_pixel_buf = NULL;
     pixel_t *output_pixel_buf = NULL;
+    interp_data_st_t interp_data = {0};
 
     init_uart_logger(&huart3);
 
@@ -69,6 +70,11 @@ void neon_main()
 
     log_dbg("Allocated output_pixel_buf of %d elements\n", output_pixel_cnt);
 
+    interp_data.input_px = input_pixel_buf;
+    interp_data.input_px_cnt = input_pixel_cnt;
+    interp_data.out_px = output_pixel_buf;
+    interp_data.out_px_cnt = output_pixel_cnt;
+
     /* Main loop */
     while (1) {
         log_dbg("Going to read the frame\n");
@@ -79,8 +85,7 @@ void neon_main()
         log_dbg("Interpolating %d pixels to %d\n", input_pixel_cnt,
                 output_pixel_cnt);
 
-        interpolate_rgb(input_pixel_buf, input_pixel_cnt,
-                        output_pixel_buf, output_pixel_cnt);
+        interpolate_rgb(&interp_data);
 
         for (int i = 0; i < output_pixel_cnt; i++) {
             log_dbg("Interpolated RGB[%d]:[%02X %02X %02X]\n", i,
