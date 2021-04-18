@@ -70,6 +70,8 @@ void neon_main()
 
     log_dbg("Allocated output_pixel_buf of %d elements\n", output_pixel_cnt);
 
+    interp_data.attenuation_index = ATTENUATION_INDEX;
+
     interp_data.input_px = input_pixel_buf;
     interp_data.input_px_cnt = input_pixel_cnt;
     interp_data.out_px = output_pixel_buf;
