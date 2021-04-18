@@ -2,79 +2,71 @@
  * auth blah-blah
  */
 
-#include <stdint.h>
+#include "rgb-interpolator.h"
+
+#define COPY_PIXEL(dest, src)           (dest)[0] = src[0];                     \
+                                        (dest)[1] = src[1];                     \
+                                        (dest)[2] = src[2]
+
+#define SET_PIXEL(dest, r, g, b)        (dest)[0] = r;                          \
+                                        (dest)[1] = g;                          \
+                                        (dest)[2] = b
+
+#define INTERP_PIXEL(intp_px, px_bef, px_aft, sub_pos)                          \
+    intp_px[0] = sub_pos * (px_aft[0] - px_bef[0]) + px_bef[0];                 \
+    intp_px[1] = sub_pos * (px_aft[1] - px_bef[1]) + px_bef[1];                 \
+    intp_px[2] = sub_pos * (px_aft[2] - px_bef[2]) + px_bef[2]
 
 /* returns value from an array, with checking for index accuracy */
 static inline
-uint8_t get_colour_src(uint8_t *input_px_channel, int input_px_cnt, int index)
+void get_parent_px(pixel_t *input_px, int input_px_cnt, int index,
+    pixel_t *parent_px)
 {
     if (0 == input_px_cnt) {
-        return 0;
+        SET_PIXEL(*parent_px, 0, 0, 0);
+    } else if (index < 0) {
+        COPY_PIXEL(*parent_px, input_px[0]);
+    } else if (index >= input_px_cnt) {
+        COPY_PIXEL(*parent_px, input_px[input_px_cnt - 1]);
+    } else {
+        COPY_PIXEL(*parent_px, input_px[index]);
     }
-
-    if (index < 0) {
-        return input_px_channel[0];
-    }
-
-    if (index >= input_px_cnt) {
-        return input_px_channel[input_px_cnt - 1];
-    }
-
-    return input_px_channel[index];
 }
 
-/* returns float casted to (int) interpolated value, according to float position
- * in source array */
-uint8_t get_interped_colour(uint8_t *input_px_channel, int input_px_cnt, float
-    sub_pos)
+void interpolate_rgb(interp_data_st_t *interp_data)
 {
-    int pos_before = (int)sub_pos; /* lower colour position in current iter */
-    int pos_after = (pos_before + 1);
-    float coefficient = sub_pos - pos_before;
-    uint8_t colour_before = 0;
-    uint8_t colour_after = 0;
-    uint8_t interped_colour = 0;
+    int out_px_pos;
+    float sub_pos;
+    float sub_pos_fractional;
+    int left_px_pos;
+    int right_px_pos;
+    float multiplier;
+    pixel_t left_px;
+    pixel_t right_px;
 
-    colour_before = get_colour_src(input_px_channel, input_px_cnt, pos_before);
-    colour_after = get_colour_src(input_px_channel, input_px_cnt, pos_after);
+    multiplier = ((float)interp_data->out_px_cnt - 1) /
+                 ((float)interp_data->input_px_cnt - 1);
 
-    /* Calculating interpolated value itself */
-    if (coefficient <= 0) {
-        return colour_before;
-    }
+    for (out_px_pos = 0; out_px_pos < interp_data->out_px_cnt; ++out_px_pos) {
+        sub_pos = out_px_pos / multiplier;
+        left_px_pos = (int)sub_pos; /* lower px position in current iter */
+        right_px_pos = (left_px_pos + 1);
+        sub_pos_fractional = sub_pos - left_px_pos;
 
-    if (coefficient >= 1) {
-        return colour_after;
-    }
+        get_parent_px(interp_data->input_px, interp_data->input_px_cnt,
+                      left_px_pos, &left_px);
+        get_parent_px(interp_data->input_px, interp_data->input_px_cnt,
+                      right_px_pos, &right_px);
 
-    interped_colour = (colour_before + coefficient * (colour_after -
-                                                      colour_before));
-
-    return interped_colour;
-}
-
-void interpolate_rgb(uint8_t input_px[][3], int input_px_cnt,
-    uint8_t out_px[][3], int out_px_cnt)
-{
-    float multiplier = ((float)out_px_cnt - 1) / (input_px_cnt - 1);
-
-    uint8_t red_px[input_px_cnt];
-    uint8_t green_px[input_px_cnt];
-    uint8_t blue_px[input_px_cnt];
-
-    for (int i = 0; i < input_px_cnt; ++i) {
-        red_px[i] = input_px[i][0];
-        green_px[i] = input_px[i][1];
-        blue_px[i] = input_px[i][2];
-    }
-
-    for (int i = 0; i < out_px_cnt; ++i) {
-        out_px[i][0] =
-            get_interped_colour(red_px, input_px_cnt, i / multiplier);
-        out_px[i][1] =
-            get_interped_colour(green_px, input_px_cnt, i / multiplier);
-        out_px[i][2] =
-            get_interped_colour(blue_px, input_px_cnt, i / multiplier);
+        /* Calculating interpolated value itself */
+        if (sub_pos_fractional <= 0) {
+            COPY_PIXEL(interp_data->out_px[out_px_pos], left_px);
+        } else if (sub_pos_fractional >= 1) {
+            COPY_PIXEL(interp_data->out_px[out_px_pos], right_px);
+        } else {
+            INTERP_PIXEL(interp_data->out_px[out_px_pos], left_px, right_px,
+                         sub_pos_fractional);
+        }
     }
 }
 
