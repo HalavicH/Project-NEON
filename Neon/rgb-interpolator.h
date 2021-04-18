@@ -6,6 +6,8 @@
 typedef uint8_t pixel_t[3];
 
 typedef struct interp_data {
+    float attenuation_index;
+
     pixel_t *input_px;
     uint32_t input_px_cnt;
 

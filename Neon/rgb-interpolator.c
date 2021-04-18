@@ -17,6 +17,11 @@
     intp_px[1] = sub_pos * (px_aft[1] - px_bef[1]) + px_bef[1];                 \
     intp_px[2] = sub_pos * (px_aft[2] - px_bef[2]) + px_bef[2]
 
+#define ATTENUATE_PIXEL(att_px, intp_px, att_index)                             \
+    att_px[0] = intp_px[0] / att_index;                                         \
+    att_px[1] = intp_px[1] / att_index;                                         \
+    att_px[2] = intp_px[2] / att_index
+
 /* returns value from an array, with checking for index accuracy */
 static inline
 void get_parent_px(pixel_t *input_px, int input_px_cnt, int index,
@@ -43,6 +48,7 @@ void interpolate_rgb(interp_data_st_t *interp_data)
     float multiplier;
     pixel_t left_px;
     pixel_t right_px;
+    pixel_t interped_px;
 
     multiplier = ((float)interp_data->out_px_cnt - 1) /
                  ((float)interp_data->input_px_cnt - 1);
@@ -60,13 +66,15 @@ void interpolate_rgb(interp_data_st_t *interp_data)
 
         /* Calculating interpolated value itself */
         if (sub_pos_fractional <= 0) {
-            COPY_PIXEL(interp_data->out_px[out_px_pos], left_px);
+            COPY_PIXEL(interped_px, left_px);
         } else if (sub_pos_fractional >= 1) {
-            COPY_PIXEL(interp_data->out_px[out_px_pos], right_px);
+            COPY_PIXEL(interped_px, right_px);
         } else {
-            INTERP_PIXEL(interp_data->out_px[out_px_pos], left_px, right_px,
-                         sub_pos_fractional);
+            INTERP_PIXEL(interped_px, left_px, right_px, sub_pos_fractional);
         }
+
+        ATTENUATE_PIXEL(interp_data->out_px[out_px_pos], interped_px,
+                        interp_data->attenuation_index);
     }
 }
 
