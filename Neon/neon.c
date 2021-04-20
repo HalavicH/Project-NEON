@@ -43,6 +43,8 @@ void neon_main()
         return;
     }
 
+    MX_GPIO_Init();
+
     ws28_reader.cmsis_eof_timer_ptr = TIM3;
     ws28_reader.cmsis_exti_irq_ptr = EXTI;
     ws28_reader.cmsis_input_gpio_port = GPIOA;

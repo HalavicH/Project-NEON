@@ -151,22 +151,22 @@ inline void ws28_irq_reader_callback(void)
     frame_buf[input_bits_cnt++] = !!(GPIOA->IDR & WS28_CH1_Input_Pin); /* mov.w ldr ldr str */
 }
 
+inline
 void ws28_eof_timer_callback()
 {
     int rc = 0;
 
     /* Stop EOF timer */
     active_eof_tim->CR1 &= ~TIM_CR1_CEN; /* Stop counter */
-    active_eof_tim->CNT = 0;             /* Reset counter */
 
-    if (0 == input_bits_cnt) {
-        /* Investigate! Situation of misstrigger. */
-        HAL_GPIO_WritePin(Cycle_LED_GPIO_Port, Cycle_LED_Pin, 1);
+    //if (0 == input_bits_cnt) {
+    //    /* Investigate! Situation of misstrigger. */
+    //    HAL_GPIO_WritePin(Cycle_LED_GPIO_Port, Cycle_LED_Pin, 1);
 
-        return;
-    }
+    //    return;
+    //}
 
-    printf("Got: %d bits\n", input_bits_cnt);
+    //printf("%d\n", input_bits_cnt);
 
     if (active_frame_buf_len == input_bits_cnt) {
         log_info("Full frame!\n");
@@ -181,6 +181,7 @@ void ws28_eof_timer_callback()
 
     input_bits_cnt = 0;
 
+    active_eof_tim->CNT = 0;             /* Reset counter */
     /* For time measurement */
     BLINK(EOF_GPIO_Port, EOF_Pin);
 }
