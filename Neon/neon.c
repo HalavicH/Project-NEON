@@ -25,6 +25,8 @@ void neon_main()
     pixel_t *output_pixel_buf = NULL;
     interp_data_st_t interp_data = {0};
 
+    SysTick->CTRL = 0;    //Disable Systick
+
     init_uart_logger(&huart3);
 
     HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1); /* Start alive LED */
